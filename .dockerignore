@@ -1,0 +1,44 @@
+# Exclude Git metadata history files
+.git
+.github/
+.gitignore
+
+# Exclude Virtual Environment
+.venv/
+
+# Ignore all .env files
+.env
+.env.*
+
+# Exclude Python Cache
+__pycache__/
+*.py[cod]
+
+# Exclude  Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# Exclude Jupyter
+.ipynb_checkpoints/
+notebooks/
+*.ipynb
+
+# Exclude IDE & OS Settings
+.vscode/
+Thumbs.db
+.DS_Store
+.idea/
+
+# Exclude Log files
+logs/
+*.log
+
+# Type checking / linting caches
+.mypy_cache/
+.ruff_cache/
+
+# Exclude Documentation & Tests
+tests/
+README.md

@@ -1,0 +1,40 @@
+# Exclude Virtual Environment
+.venv/
+
+# Ignore all .env  Environment variables / secrets files
+.env
+.env.*
+
+# But include .env.example
+!.env.example
+
+# Exclude Python Cache
+__pycache__/
+*.py[cod]
+
+# Exclude  Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Exclude IDE & OS Settings
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Model artifacts
+*.onnx
+*.pkl
+
+# Type checking / linting caches
+.mypy_cache/
+.ruff_cache/
+
+# Logs
+logs/
+*.log
