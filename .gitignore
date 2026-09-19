@@ -28,8 +28,8 @@ Thumbs.db
 .DS_Store
 
 # Model artifacts
-*.onnx
-*.pkl
+#*.onnx
+#*.pkl
 
 # Type checking / linting caches
 .mypy_cache/
@@ -38,3 +38,7 @@ Thumbs.db
 # Logs
 logs/
 *.log
+
+# Raw data and generated model artifacts
+data/*
+!data/.gitkeep
