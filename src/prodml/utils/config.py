@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     # ------------------------------------------------------------------
 
     dataset_filename: str = "WildFires_DataSet.csv"
+    processed_dataset_filename: str = "WildFires_DataSet_processed.csv"
+
     target_column: str = "CLASS"
 
     feature_names: tuple[str, ...] = (
@@ -53,6 +55,20 @@ class Settings(BaseSettings):
 
     model_name: str = "baseline"
     model_version: str = "0.1.0"
+    model_candidates: list[str] = [
+        "random_forest",
+        "logistic_regression",
+        "xgboost",
+    ]
+
+    random_state: int = 42
+
+    random_forest_params: dict = {
+        "n_estimators": 100,
+        "max_depth": None,
+        "min_samples_split": 2,
+        "min_samples_leaf": 1,
+    }
 
     model_path: Path = artifacts_dir / "baseline.pkl"
 
