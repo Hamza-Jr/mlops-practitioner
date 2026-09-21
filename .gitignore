@@ -42,3 +42,5 @@ logs/
 # Raw data and generated model artifacts
 data/*
 !data/.gitkeep
+
+manual_test

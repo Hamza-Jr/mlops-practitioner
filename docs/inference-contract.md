@@ -43,15 +43,15 @@ pipeline and the trained Random Forest model.
 
 ### 3.1 Model
 
-- **Final production model:** `best_wildfire_model.pkl`
+- **Final production model:** `baseline.pkl`
 - **Model type:** Random Forest Classifier
 - **Framework:** Scikit-learn
 - **Number of output classes:** 2
  ```python
  	{
   	    0: "no_fire",
-    	1: "fire"
-  	}
+    	  1: "fire"
+  }
  ```
 - **Selection criterion:** Highest validation accuracy
 - **Validation accuracy:** `80.54%`

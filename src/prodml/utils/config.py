@@ -12,32 +12,55 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    # ------------------------------------------------------------------
     # Project paths
+    # ------------------------------------------------------------------
+
     project_root: Path = Path(__file__).resolve().parents[3]
+
     data_dir: Path = project_root / "data"
     raw_data_dir: Path = data_dir / "raw"
     processed_data_dir: Path = data_dir / "processed"
 
     models_dir: Path = project_root / "models"
     artifacts_dir: Path = models_dir / "artifacts"
-    model_path: Path = artifacts_dir / "baseline.pkl"
 
-    # Model configuration
-    model_name: str = "baseline"
-    model_version: str = "0.1.0"
+    reports_dir: Path = project_root / "reports"
+    evaluation_reports_docs: Path = reports_dir / "model_evaluation.md"
 
-    # Inference features
+    # ------------------------------------------------------------------
+    # Dataset configuration
+    # ------------------------------------------------------------------
+
+    dataset_filename: str = "WildFires_DataSet.csv"
+    target_column: str = "CLASS"
+
     feature_names: tuple[str, ...] = (
         "NDVI",
         "LST",
         "BURNED_AREA",
     )
 
-    # Class mapping
-    class_mapping: dict[int, str] = {
-        0: "no_fire",
-        1: "fire",
+    # Raw dataset labels -> encoded model labels
+    class_mapping: dict[str, int] = {
+        "no_fire": 0,
+        "fire": 1,
     }
+
+    # ------------------------------------------------------------------
+    # Model configuration
+    # ------------------------------------------------------------------
+
+    model_name: str = "baseline"
+    model_version: str = "0.1.0"
+
+    model_path: Path = artifacts_dir / "baseline.pkl"
+
+    # ------------------------------------------------------------------
+    # Derived paths
+    # ------------------------------------------------------------------
+
+    dataset_path: Path = raw_data_dir / dataset_filename
 
 
 settings = Settings()
