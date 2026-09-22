@@ -27,6 +27,7 @@ class Settings(BaseSettings):
 
     reports_dir: Path = project_root / "reports"
     evaluation_reports_docs: Path = reports_dir / "model_evaluation.md"
+    module_1_report_path: Path = reports_dir / "module-1.md"
 
     # ------------------------------------------------------------------
     # Dataset configuration
