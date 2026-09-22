@@ -43,6 +43,8 @@ class Settings(BaseSettings):
         "BURNED_AREA",
     )
 
+    validation_data_path: Path = data_dir / "validation" / "validation_data.csv"
+
     # Raw dataset labels -> encoded model labels
     class_mapping: dict[str, int] = {
         "no_fire": 0,
