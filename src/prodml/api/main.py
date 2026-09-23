@@ -4,6 +4,7 @@ from fastapi import FastAPI
 
 from prodml.api.routes.health import router as health_router
 from prodml.api.routes.metadata import router as metadata_router
+from prodml.api.routes.predict import router as predict_router
 from prodml.models.onnx_model import ONNXWildfireModel
 from prodml.models.predictor import WildfirePredictor
 from prodml.utils.config import settings
@@ -33,3 +34,4 @@ app = FastAPI(
 
 app.include_router(health_router)
 app.include_router(metadata_router)
+app.include_router(predict_router)
