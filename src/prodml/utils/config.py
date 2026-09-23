@@ -58,6 +58,8 @@ class Settings(BaseSettings):
 
     model_name: str = "baseline"
     model_version: str = "0.1.0"
+    training_date: str = "2026-09-19"
+    framework: str = "scikit-learn"
     model_candidates: list[str] = [
         "random_forest",
         "logistic_regression",
