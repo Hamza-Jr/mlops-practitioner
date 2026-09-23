@@ -75,6 +75,8 @@ class Settings(BaseSettings):
 
     model_path: Path = artifacts_dir / "baseline.pkl"
 
+    onnx_model_path: Path = artifacts_dir / "baseline.onnx"
+
     # ------------------------------------------------------------------
     # Derived paths
     # ------------------------------------------------------------------
