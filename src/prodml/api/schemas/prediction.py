@@ -31,10 +31,12 @@ class PredictionRequest(BaseModel):
     lst: float = Field(
         description="Land Surface Temperature",
         allow_inf_nan=False,
+        ge=0,
     )
     burned_area: float = Field(
         description="Burned-area measurement",
         allow_inf_nan=False,
+        ge=0,
     )
 
 
