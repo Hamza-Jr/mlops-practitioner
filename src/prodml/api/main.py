@@ -1,7 +1,9 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 from prodml.api.middleware.correlation import CorrelationMiddleware
 from prodml.api.routes.health import router as health_router
@@ -25,17 +27,31 @@ async def lifespan(app: FastAPI):
     logger.info(
         "application_started",
         extra={
+            "event": "application_started",
             "model_version": settings.model_version,
         },
     )
 
-    model = ONNXWildfireModel(settings.onnx_model_path)
-    app.state.predictor = WildfirePredictor(model)
-    app.state.artifact_hash = calculate_sha256(settings.onnx_model_path)
+    try:
+        model = ONNXWildfireModel(settings.onnx_model_path)
+        app.state.predictor = WildfirePredictor(model)
+        app.state.artifact_hash = calculate_sha256(settings.onnx_model_path)
+
+    except Exception as exc:
+        logger.error(
+            "model_load_failed",
+            extra={
+                "event": "model_load_failed",
+                "model_version": settings.model_version,
+                "error_type": type(exc).__name__,
+            },
+        )
+        raise
 
     logger.info(
         "model_loaded",
         extra={
+            "event": "model_loaded",
             "model_version": settings.model_version,
         },
     )
@@ -45,6 +61,7 @@ async def lifespan(app: FastAPI):
     logger.info(
         "application_shutdown",
         extra={
+            "event": "application_shutdown",
             "model_version": settings.model_version,
         },
     )
@@ -59,6 +76,33 @@ app = FastAPI(
     version=settings.model_version,
     lifespan=lifespan,
 )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    request: Request,
+    exc: RequestValidationError,
+) -> JSONResponse:
+    """Log rejected requests and return a safe validation response."""
+
+    logger.error(
+        "Request validation rejected",
+        extra={
+            "event": "validation_rejected",
+            "endpoint": request.url.path,
+            "method": request.method,
+            "status_code": 422,
+            "error_type": "RequestValidationError",
+        },
+    )
+
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": "Request validation failed.",
+        },
+    )
+
 
 app.add_middleware(CorrelationMiddleware)
 

@@ -85,5 +85,15 @@ class Settings(BaseSettings):
 
     dataset_path: Path = raw_data_dir / dataset_filename
 
+    # ------------------------------------------------------------------
+    # # Observed ranges in the training dataset
+    # ------------------------------------------------------------------
+
+    training_ranges: dict[str, tuple[float, float]] = {
+        "ndvi": (0.030735, 0.781723),
+        "lst": (13137.0, 15611.570513),
+        "burned_area": (3.0, 9.0),
+    }
+
 
 settings = Settings()

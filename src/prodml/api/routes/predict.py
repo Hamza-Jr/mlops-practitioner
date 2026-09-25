@@ -12,10 +12,43 @@ from prodml.api.schemas.prediction import (
 )
 from prodml.models.predictor import WildfirePredictor
 from prodml.utils.config import settings
+from prodml.utils.decorators import prediction_latency_ms
 
 router = APIRouter()
 
 logger = logging.getLogger("prodml.api")
+
+
+def _log_outside_training_range(
+    *,
+    request: Request,
+    features: dict[str, float],
+    batch_size: int | None = None,
+) -> None:
+    """Log a warning when an input is outside the observed training range."""
+
+    outside_features = []
+
+    for feature_name, value in features.items():
+        minimum, maximum = settings.training_ranges[feature_name]
+
+        if value < minimum or value > maximum:
+            outside_features.append(feature_name)
+
+    if outside_features:
+        extra = {
+            "event": "input_outside_training_range",
+            "endpoint": request.url.path,
+            "method": request.method,
+        }
+
+        if batch_size is not None:
+            extra["batch_size"] = batch_size
+
+        logger.warning(
+            "Input outside observed training range",
+            extra=extra,
+        )
 
 
 @router.post("/predict", response_model=PredictionResponse)
@@ -26,26 +59,36 @@ def predict(
 ) -> PredictionResponse:
     """Return a prediction for a single wildfire observation."""
 
-    request_id = request.state.request_id
-
     logger.info(
-        "prediction_requested",
+        "Prediction requested",
         extra={
-            "request_id": request_id,
+            "event": "prediction_requested",
             "model_version": settings.model_version,
             "endpoint": "/predict",
             "method": request.method,
         },
     )
 
-    X = pd.DataFrame(
-        [
-            {
-                "ndvi": payload.ndvi,
-                "lst": payload.lst,
-                "burned_area": payload.burned_area,
-            }
-        ]
+    features = {
+        "ndvi": payload.ndvi,
+        "lst": payload.lst,
+        "burned_area": payload.burned_area,
+    }
+
+    _log_outside_training_range(
+        request=request,
+        features=features,
+    )
+
+    X = pd.DataFrame([features])
+
+    logger.debug(
+        "Feature vector prepared for prediction",
+        extra={
+            "event": "feature_vector",
+            "endpoint": "/predict",
+            "features": features,
+        },
     )
 
     try:
@@ -53,14 +96,14 @@ def predict(
 
     except Exception as exc:
         logger.error(
-            "prediction_failed",
+            "Prediction failed",
             extra={
-                "request_id": request_id,
+                "event": "prediction_failed",
                 "model_version": settings.model_version,
                 "endpoint": "/predict",
-                "error_type": type(exc).__name__,
-                "status_code": 500,
                 "method": request.method,
+                "status_code": 500,
+                "error_type": type(exc).__name__,
             },
         )
 
@@ -70,13 +113,14 @@ def predict(
         ) from exc
 
     logger.info(
-        "prediction_successful",
+        "Prediction served successfully",
         extra={
-            "request_id": request_id,
+            "event": "prediction_successful",
             "model_version": settings.model_version,
             "endpoint": "/predict",
             "method": request.method,
             "status_code": 200,
+            "latency_ms": prediction_latency_ms.get(),
         },
     )
 
@@ -94,28 +138,45 @@ def predict_batch(
 ) -> BatchPredictionResponse:
     """Return predictions for a batch of wildfire observations."""
 
-    request_id = request.state.request_id
+    batch_size = len(payload.instances)
 
     logger.info(
-        "prediction_requested",
+        "Prediction requested",
         extra={
-            "request_id": request_id,
+            "event": "prediction_requested",
             "model_version": settings.model_version,
             "endpoint": "/predict/batch",
             "method": request.method,
-            "batch_size": len(payload.instances),
+            "batch_size": batch_size,
         },
     )
 
-    X = pd.DataFrame(
-        [
-            {
-                "ndvi": item.ndvi,
-                "lst": item.lst,
-                "burned_area": item.burned_area,
-            }
-            for item in payload.instances
-        ]
+    feature_records = [
+        {
+            "ndvi": item.ndvi,
+            "lst": item.lst,
+            "burned_area": item.burned_area,
+        }
+        for item in payload.instances
+    ]
+
+    for features in feature_records:
+        _log_outside_training_range(
+            request=request,
+            features=features,
+            batch_size=batch_size,
+        )
+
+    X = pd.DataFrame(feature_records)
+
+    logger.debug(
+        "Feature vector prepared for batch prediction",
+        extra={
+            "event": "feature_vector",
+            "endpoint": "/predict/batch",
+            "batch_size": batch_size,
+            "features": feature_records,
+        },
     )
 
     try:
@@ -123,15 +184,15 @@ def predict_batch(
 
     except Exception as exc:
         logger.error(
-            "prediction_failed",
+            "Prediction failed",
             extra={
-                "request_id": request_id,
+                "event": "prediction_failed",
                 "model_version": settings.model_version,
                 "endpoint": "/predict/batch",
                 "method": request.method,
-                "batch_size": len(payload.instances),
-                "error_type": type(exc).__name__,
+                "batch_size": batch_size,
                 "status_code": 500,
+                "error_type": type(exc).__name__,
             },
         )
 
@@ -141,14 +202,15 @@ def predict_batch(
         ) from exc
 
     logger.info(
-        "prediction_successful",
+        "Prediction served successfully",
         extra={
-            "request_id": request_id,
+            "event": "prediction_successful",
             "model_version": settings.model_version,
             "endpoint": "/predict/batch",
             "method": request.method,
-            "batch_size": len(payload.instances),
+            "batch_size": batch_size,
             "status_code": 200,
+            "latency_ms": prediction_latency_ms.get(),
         },
     )
 

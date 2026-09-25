@@ -3,20 +3,25 @@ import logging
 import sys
 from datetime import UTC, datetime
 
+from prodml.logging.context import correlation_id
+
 
 class JsonFormatter(logging.Formatter):
-    """Format application log records as single-line JSON objects."""
+    """Format log records as single-line JSON objects."""
 
     _OPTIONAL_FIELDS = (
-        "request_id",
+        "event",
         "model_version",
         "endpoint",
         "method",
         "duration_ms",
+        "latency_ms",
         "batch_size",
         "error_type",
         "status_code",
         "reason",
+        "function",
+        "features",
     )
 
     def format(self, record: logging.LogRecord) -> str:
@@ -26,7 +31,8 @@ class JsonFormatter(logging.Formatter):
             "timestamp": datetime.now(UTC).isoformat(),
             "level": record.levelname,
             "logger": record.name,
-            "event": record.getMessage(),
+            "message": record.getMessage(),
+            "correlation_id": correlation_id.get(),
         }
 
         for field in self._OPTIONAL_FIELDS:
@@ -45,7 +51,7 @@ def configure_logging() -> None:
     handler.setFormatter(JsonFormatter())
 
     root_logger = logging.getLogger()
-    root_logger.setLevel(logging.INFO)
+    root_logger.setLevel(logging.DEBUG)
 
     root_logger.handlers.clear()
     root_logger.addHandler(handler)
