@@ -1,5 +1,7 @@
+import logging
+
 import pandas as pd
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from prodml.api.dependencies import get_predictor
 from prodml.api.schemas.prediction import (
@@ -9,28 +11,74 @@ from prodml.api.schemas.prediction import (
     PredictionResponse,
 )
 from prodml.models.predictor import WildfirePredictor
+from prodml.utils.config import settings
 
 router = APIRouter()
+
+logger = logging.getLogger("prodml.api")
 
 
 @router.post("/predict", response_model=PredictionResponse)
 def predict(
-    request: PredictionRequest,
+    request: Request,
+    payload: PredictionRequest,
     predictor: WildfirePredictor = Depends(get_predictor),  # noqa: B008
 ) -> PredictionResponse:
     """Return a prediction for a single wildfire observation."""
 
+    request_id = request.state.request_id
+
+    logger.info(
+        "prediction_requested",
+        extra={
+            "request_id": request_id,
+            "model_version": settings.model_version,
+            "endpoint": "/predict",
+            "method": request.method,
+        },
+    )
+
     X = pd.DataFrame(
         [
             {
-                "ndvi": request.ndvi,
-                "lst": request.lst,
-                "burned_area": request.burned_area,
+                "ndvi": payload.ndvi,
+                "lst": payload.lst,
+                "burned_area": payload.burned_area,
             }
         ]
     )
 
-    result = predictor.predict_one(X)
+    try:
+        result = predictor.predict_one(X)
+
+    except Exception as exc:
+        logger.error(
+            "prediction_failed",
+            extra={
+                "request_id": request_id,
+                "model_version": settings.model_version,
+                "endpoint": "/predict",
+                "error_type": type(exc).__name__,
+                "status_code": 500,
+                "method": request.method,
+            },
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Prediction failed.",
+        ) from exc
+
+    logger.info(
+        "prediction_successful",
+        extra={
+            "request_id": request_id,
+            "model_version": settings.model_version,
+            "endpoint": "/predict",
+            "method": request.method,
+            "status_code": 200,
+        },
+    )
 
     return PredictionResponse(
         class_name=result["class"],
@@ -40,10 +88,24 @@ def predict(
 
 @router.post("/predict/batch", response_model=BatchPredictionResponse)
 def predict_batch(
-    request: BatchPredictionRequest,
+    request: Request,
+    payload: BatchPredictionRequest,
     predictor: WildfirePredictor = Depends(get_predictor),  # noqa: B008
 ) -> BatchPredictionResponse:
     """Return predictions for a batch of wildfire observations."""
+
+    request_id = request.state.request_id
+
+    logger.info(
+        "prediction_requested",
+        extra={
+            "request_id": request_id,
+            "model_version": settings.model_version,
+            "endpoint": "/predict/batch",
+            "method": request.method,
+            "batch_size": len(payload.instances),
+        },
+    )
 
     X = pd.DataFrame(
         [
@@ -52,11 +114,43 @@ def predict_batch(
                 "lst": item.lst,
                 "burned_area": item.burned_area,
             }
-            for item in request.instances
+            for item in payload.instances
         ]
     )
 
-    predictions = predictor.predict_batch(X)
+    try:
+        predictions = predictor.predict_batch(X)
+
+    except Exception as exc:
+        logger.error(
+            "prediction_failed",
+            extra={
+                "request_id": request_id,
+                "model_version": settings.model_version,
+                "endpoint": "/predict/batch",
+                "method": request.method,
+                "batch_size": len(payload.instances),
+                "error_type": type(exc).__name__,
+                "status_code": 500,
+            },
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Prediction failed.",
+        ) from exc
+
+    logger.info(
+        "prediction_successful",
+        extra={
+            "request_id": request_id,
+            "model_version": settings.model_version,
+            "endpoint": "/predict/batch",
+            "method": request.method,
+            "batch_size": len(payload.instances),
+            "status_code": 200,
+        },
+    )
 
     return BatchPredictionResponse(
         predictions=predictions,
