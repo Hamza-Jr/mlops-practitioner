@@ -41,8 +41,7 @@ logs/
 
 # Exclude Documentation & Tests
 tests/
-README.md
+
 
 # Raw data and generated model artifacts
 data/
-models/

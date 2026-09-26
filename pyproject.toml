@@ -2,7 +2,6 @@
 name = "prodml"
 version = "0.1.0"
 description = "Production-ready machine learning service for wildfire classification"
-readme = "README.md"
 authors = [
     { name = "Hamza-Jr"}
 ]

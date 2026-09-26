@@ -56,3 +56,30 @@ validation dataset.
 The test suite covers the API, data ingestion and validation, feature engineering, model training and evaluation, model export, prediction, serialization parity, and end-to-end pipelines.
 
 The project therefore exceeds the configured **70%** minimum test coverage requirement, achieving **98.05% total coverage** with **45 tests passing**.
+
+## Docker Image Size Comparison
+
+### `.dockerignore` comparison
+
+| Build | Disk usage | Content size |
+|---|---:|---:|
+| Without `.dockerignore` | `839 MB` | `195 MB` |
+| With `.dockerignore` | `839 MB` | `195 MB` |
+
+In this project, `.dockerignore` did not change the final image size because
+the excluded development files are not copied into the final image. The
+`.dockerignore` still prevents unnecessary files such as `.git`, `.venv`,
+notebooks, data, tests, and Python cache files from being included in the
+Docker build context.
+
+### Single-stage vs multi-stage
+
+| Docker build | Disk usage | Content size |
+|---|---:|---:|
+| Single-stage | `860 MB` | `201 MB` |
+| Multi-stage | `839 MB` | `195 MB` |
+
+The multi-stage image is approximately `21 MB` smaller in disk usage and `6 MB`
+smaller in content size than the single-stage image. The multi-stage build
+keeps the dependency installation stage separate from the runtime stage,
+resulting in a smaller final runtime image.
