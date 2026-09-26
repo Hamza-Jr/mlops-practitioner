@@ -83,3 +83,16 @@ The multi-stage image is approximately `21 MB` smaller in disk usage and `6 MB`
 smaller in content size than the single-stage image. The multi-stage build
 keeps the dependency installation stage separate from the runtime stage,
 resulting in a smaller final runtime image.
+
+
+## MLOps Maturity Self-Assessment
+
+### Current Level
+
+**Level 1 — ML Pipeline / Production-Ready Model**
+
+This project is at Level 1 because the original research workflow has been transformed into a modular, tested, containerized ML service with model abstraction and dependency injection, ONNX serialization, a FastAPI inference API, structured logging, automated testing, and a reproducible Docker deployment.
+
+### What Is Missing for the Next Level
+
+To reach Level 2, the project needs automated experiment tracking, model and data versioning, CI/CD, model quality gates, a model registry, infrastructure as code, and continuous training. These capabilities are introduced in Module 2 and will make the training, evaluation, promotion, and deployment workflow reproducible and automated rather than primarily application-level.
