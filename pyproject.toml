@@ -2,13 +2,45 @@
 name = "prodml"
 version = "0.1.0"
 description = "Production-ready machine learning service for wildfire classification"
-readme = "README.md"
 authors = [
     { name = "Hamza-Jr"}
 ]
 requires-python = "==3.11.*"
-dependencies = []
+dependencies = [
+    "fastapi>=0.141.1",
+    "joblib>=1.6.0",
+    "numpy>=2.4.6",
+    "onnxruntime>=1.30.0",
+    "pandas>=3.0.6",
+    "pydantic-settings>=2.15.0",
+    "python-json-logger>=4.2.0",
+    "scikit-learn==1.6.1",
+    "skl2onnx>=1.20.0",
+    "uvicorn>=0.53.0",
+]
 
 [build-system]
 requires = ["uv_build>=0.12.5,<0.13.0"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "black>=26.5.1",
+    "httpx2>=2.13.1",
+    "mypy>=2.3.1",
+    "pre-commit>=4.6.2",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.16.8",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = [
+    "--cov=prodml",
+    "--cov-report=term-missing",
+    "--cov-fail-under=70",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:starlette.testclient",
+]

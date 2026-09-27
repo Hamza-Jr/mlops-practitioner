@@ -1,0 +1,11 @@
+services:
+  api:
+    image: prodml-api:0.1.0
+    container_name: prodml-api
+    environment:
+      PRODML_ONNX_MODEL_PATH: /app/models/artifacts/baseline.onnx
+    volumes:
+      - ../models:/app/models:ro
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
